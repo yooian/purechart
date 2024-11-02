@@ -5,13 +5,17 @@
             <%- arc_y = 150 %>
             <%- cumulative_percent = 0 %>
             <%- cumulative_angle = -180 %>
+
             <%# Calculate arc coordinates to draw each slice %>
             <%- data.each_with_index do |object, index| %>
                 <%- cumulative_percent += object[:percent_value] %>
-                <path class="pie-slice" id="pie-slice-<%= index %>" d="M 150 150 L <%= arc_x %> <%= arc_y %> A 125 125 0 
-                    <%= object[:percent_value] > 0.5 ? 1 : 0 %> 1
-                    <%= 150 - 125 * Math.cos(2 * Math::PI * cumulative_percent) %> 
-                    <%= 150 - 125 * Math.sin(2 * Math::PI * cumulative_percent) %> Z" 
+                <path 
+                class="pie-slice" 
+                id="pie-slice-<%= index %>" 
+                d="M 150 150 L <%= arc_x %> <%= arc_y %> A 125 125 0 
+                                <%= object[:percent_value] > 0.5 ? 1 : 0 %> 1
+                                <%= 150 - 125 * Math.cos(2 * Math::PI * cumulative_percent) %> 
+                                <%= 150 - 125 * Math.sin(2 * Math::PI * cumulative_percent) %> Z" 
                 stroke="<%= object[:is_negative] == 1 ? object[:color] : 'White' %>" 
                 stroke-dasharray= '<%= object[:is_negative] == 1 ? 30 : 0 %>'
                 fill="<%= object[:is_negative] == 1 ? 'White' : object[:color] %>"
@@ -28,6 +32,27 @@
                     transform='rotate(<%= cumulative_angle %>, 150, 150)'/>
                 <%- cumulative_angle += 360 * object[:percent_value] %>
             <% end %>
+
+            <%# This generates the svg tooltips on top of the pie slices %> 
+            <%- data.each_with_index do |object, index| %>
+                <%- cumulative_percent += object[:percent_value] %>
+                <%- arc_x = 150 - 125 * Math.cos(2 * Math::PI * cumulative_percent) %>
+                <%- arc_y = 150 - 125 * Math.sin(2 * Math::PI * cumulative_percent) %>
+                
+                <%# Tooltip for each pie slice %>
+                <text class="pie-slice-tooltip" 
+                        id="pie-slice-tooltip-<%= index %>" 
+                        x="<%= arc_x * 0.5 %>" 
+                        y="<%= arc_y %>" 
+                        visibility="hidden"
+                        stroke="#000000;"
+                        stroke-width="1px;">
+                    <tspan style="fill: black;"><%= object[:name] %>:</tspan>
+                    <tspan style="fill: black;"><%= object[:value] %></tspan>
+                </text>
+
+                <%- cumulative_angle += 360 * object[:percent_value] %>
+            <% end %>
         </svg>
         <%# Pie chart key %>
         <div class="pie-key-flex-container">
@@ -42,43 +67,58 @@
 </div>
 
 <style>
+<%# Styling for tooltips %>
+<%- data.each_with_index do |object, index| %>
+    .pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-slice-tooltip-<%= index %> {
+        visibility: visible; /* Show tooltip on hover */
+	    opacity: 1; /* Fade in */
+        transform: translateY(-50%);
+        transition: 0.25s all ease;
+    }
+<% end %>
+
 <%# Styling for hover effects between chart and key %>
 <%- data.each_with_index do |object, index| %>
-.pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-key-circle-<%= index %> {
-    stroke: <%= object[:color] %>;
-    r: 5%;
-	fill-opacity: 0.5;
-	transition: 0.05s all ease;
-}
-.pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-key-text-<%= index %> {
-    fill: <%= object[:color] %>;
-	transform: translateX(2.5%);
-	transition: 0.2s all ease;
-}
-.pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-<%= index %> {
-    fill-opacity: 0.8;
-	transform: translateX(0.1%);
-	transition: 0.25s all ease;
-}
-.pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-arc-<%= index %> {
-    fill-opacity: 0.8;
-	stroke-opacity: 0.3;
-	transition: 0.05s all ease;
-}
+    .pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-key-circle-<%= index %> {
+        stroke: <%= object[:color] %>;
+        r: 5%;
+        fill-opacity: 0.5;
+        transition: 0.05s all ease;
+    }
+    .pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-key-text-<%= index %> {
+        fill: <%= object[:color] %>;
+        transform: translateX(2.5%);
+        transition: 0.2s all ease;
+    }
+    .pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-<%= index %> {
+        fill-opacity: 0.8;
+        transform: translateX(0.1%);
+        transition: 0.25s all ease;
+    }
+    .pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-arc-<%= index %> {
+        fill-opacity: 0.8;
+        stroke-opacity: 0.3;
+        transition: 0.05s all ease;
+    }
+    .pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-tooltip-<%= index %> {
+        visibility: visible; /* Show tooltip on hover */
+	    opacity: 1; /* Fade in */
+        transform: translateY(-50%);
+        transition: 0.25s all ease;
+    }
 
-#pie-key-<%= index %>:hover #pie-key-circle-<%= index %> {
-	stroke: <%= object[:color] %>;
-    r: 5%;
-	fill-opacity: 0.5;
-	transition: 0.05s all ease;
-}
+    #pie-key-<%= index %>:hover #pie-key-circle-<%= index %> {
+        stroke: <%= object[:color] %>;
+        r: 5%;
+        fill-opacity: 0.5;
+        transition: 0.05s all ease;
+    }
 
-#pie-key-<%= index %>:hover #pie-key-text-<%= index %> {
-    fill: <%= object[:color] %>;
-	transform: translateX(2.5%);
-	transition: 0.2s all ease;
-}
-
+    #pie-key-<%= index %>:hover #pie-key-text-<%= index %> {
+        fill: <%= object[:color] %>;
+        transform: translateX(2.5%);
+        transition: 0.2s all ease;
+    }
 <% end %>
 
 </style>
