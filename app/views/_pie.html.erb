@@ -39,16 +39,29 @@
                 <%- arc_x = 150 - 125 * Math.cos(2 * Math::PI * cumulative_percent) %>
                 <%- arc_y = 150 - 125 * Math.sin(2 * Math::PI * cumulative_percent) %>
                 
+                <%# Background rectangle for the tooltip %>
+                <%# x - 5 is padding before the text, y - 15 is half the height, width + 1 is padding, *8px per char, +5 is for the x padding %>
+                <rect class="pie-slice-rect"
+                    id="pie-slice-rect-<%= index %>"
+                    x="<%= arc_x * 0.5 - 5%>"
+                    y="<%= arc_y - 15 %>"
+                    width="<%= (object[:name].length + object[:value].to_s.length + 1) * 8 + 5 %>" 
+                    height="30" 
+                    fill="white"
+                    stroke="gray"
+                    stroke-opacity="40%"
+                    stroke-width="1px"
+                    rx="5" ry="5" 
+                    visibility="hidden"
+                    pointer-events="none"/>
+
                 <%# Tooltip for each pie slice %>
                 <text class="pie-slice-tooltip" 
                         id="pie-slice-tooltip-<%= index %>" 
                         x="<%= arc_x * 0.5 %>" 
-                        y="<%= arc_y %>" 
-                        visibility="hidden"
-                        stroke="#000000;"
-                        stroke-width="1px;">
-                    <tspan style="fill: black;"><%= object[:name] %>:</tspan>
-                    <tspan style="fill: black;"><%= object[:value] %></tspan>
+                        y="<%= arc_y %>">
+                    <tspan style="fill: <%= object[:color] %>;" pointer-events="none"><%= object[:name] %>:</tspan>
+                    <tspan style="fill: black;" pointer-events="none"><%= object[:value] %></tspan>
                 </text>
 
                 <%- cumulative_angle += 360 * object[:percent_value] %>
@@ -70,9 +83,15 @@
 <%# Styling for tooltips %>
 <%- data.each_with_index do |object, index| %>
     .pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-slice-tooltip-<%= index %> {
-        visibility: visible; /* Show tooltip on hover */
+        visibility: visible;
 	    opacity: 1; /* Fade in */
         transform: translateY(-50%);
+        transition: 0.25s all ease;
+    }
+    .pie-flex-container:has(#pie-slice-<%= index %>:hover) #pie-slice-rect-<%= index %> {
+        visibility: visible;
+	    opacity: 1;
+        transform: translateY(-5%);
         transition: 0.25s all ease;
     }
 <% end %>
@@ -101,9 +120,15 @@
         transition: 0.05s all ease;
     }
     .pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-tooltip-<%= index %> {
-        visibility: visible; /* Show tooltip on hover */
-	    opacity: 1; /* Fade in */
+        visibility: visible;
+	    opacity: 1;
         transform: translateY(-50%);
+        transition: 0.25s all ease;
+    }
+    .pie-flex-container:has(#pie-key-<%= index %>:hover) #pie-slice-rect-<%= index %> {
+        visibility: visible;
+	    opacity: 1;
+        transform: translateY(-5%);
         transition: 0.25s all ease;
     }
 
